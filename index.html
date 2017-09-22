@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Генератор QR кодов.</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Подгружаем библиотеки -->
+    <script src="js/unicodeConverter.js"></script>
+    <script src="js/element.js"></script>
+    <!-- Грузим рабочие скрипты -->
+    <script src="js/data.js"></script>
+    <script src="js/QRGenerator.js"></script>
+</head>
+<body>
+    <form id="generator">
+        <!-- Селектор типов кода -->
+        <div id="typeOfCode">
+            <p>Выберите подходящий тип кода:</p>
+            <input onchange="changeRadioType()" name="typeOfCode" type="radio" id="typeOfCode1" value="digit">
+            <label for="typeOfCode1">Цифровой</label>
+
+            <input onchange="changeRadioType()" name="typeOfCode" type="radio" id="typeOfCode2" value="letterDigit">
+            <label for="typeOfCode2">Буквенно-Цифровой</label>
+
+            <input onchange="changeRadioType()" name="typeOfCode" type="radio" id="typeOfCode3" value="byte" checked>
+            <label for="typeOfCode3">Побайтовый</label>
+        </div>
+
+        <!-- Селектор уровня коррекции -->
+        <div id="levelCorrection">
+            <p>Выберите уровень коррекции:</p>
+            <input onchange="changeRadioLevelCorrection()" name="levelCorrection" type="radio" id="levelCorrectionL" value="L">
+            <label for="levelCorrectionL">L: 7%</label>
+
+            <input onchange="changeRadioLevelCorrection()" name="levelCorrection" type="radio" id="levelCorrectionM" value="M" checked>
+            <label for="levelCorrectionM">M: 15%</label>
+
+            <input onchange="changeRadioLevelCorrection()" name="levelCorrection" type="radio" id="levelCorrectionQ" value="Q">
+            <label for="levelCorrectionQ">Q: 25%</label>
+
+            <input onchange="changeRadioLevelCorrection()" name="levelCorrection" type="radio" id="levelCorrectionH" value="H">
+            <label for="levelCorrectionH">H: 30%</label>
+        </div>
+
+        <!-- Поле запроса -->
+        <p><label for="textFromCode">Что будем зашифровывать: </label><input id="textFromCode" name="textFromCode" oninput="clearErrorLabel()"></p>
+        <!-- Для сообщения об ошибках ввода -->
+        <div id="formError"><label id="errorLabel" for="textFromCode"></label></div>
+        <p><input type="button" onclick="GetNewQRCode()" value="Generate"></p>
+    </form>
+
+    <div id="qrCodesTable" class="table">
+        <div class="tableRow">
+            <span class="columnName tableData">Что зашифровано</span>
+            <span class="columnQRCode tableData">QR код</span>
+        </div>
+    </div>
+
+    <form id="saver">
+        <p><input type="button" onclick="SaveAsFile()" value="Save"></p>
+    </form>
+
+</body>
+</html>
