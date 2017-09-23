@@ -2,9 +2,10 @@
 function QR() {         // Прототип класса штрихкода
     this.type = undefined;
     this.levelCorrection = undefined;
+    this.version = undefined;
     this.symbols = undefined;
     this.data = undefined;
-    this.version = undefined;
+    this.blocks = undefined;
     this.svg = undefined;
     // Добавляем данные
     this.pushData = function (newData, lenght) {
@@ -42,7 +43,28 @@ function QR() {         // Прототип класса штрихкода
         }
         return sym;
     };
-    this.getVersion = function () {
+    // Делим данные на блоки
+    this.splitDataToBlocks = function () {
+        // Получаем количество блоков
+        var blocks = numberOfBlock[this.version][this.levelCorrection];
+        // Узнаём длину блоков в битах
+        var blockLenght = Math.floor(this.data.length/ blocks);
+        // и сколько будет дополненных блоков
+        var augmentedBlock = (this.data.length / 8) % blocks;
+
+        // Заполняем блоки
+        this.blocks = new Array(0);
+        var position = 0;
+        var delta = 0;
+        while (position < this.data.length) {
+            // Если остались тольно дополненные блоки берём на байт больше
+            delta = (blocks--) > augmentedBlock ? blockLenght : (blockLenght + 8);
+            this.blocks.push(this.data.substr(position, delta));
+            position += delta;
+        }
+    };
+    // Подготовка данных к шифровке
+    this.finishPrepare = function () {
         // Проверяем что поля с которыми мы работаем не пусты
         if (this.type === undefined) {
             error('QRGenerator.js', 'QR.getVersion()', 'Не указан тип кода.');
@@ -54,6 +76,7 @@ function QR() {         // Прототип класса штрихкода
             error('QRGenerator.js', 'QR.getVersion()', 'Не указано количество символов.');
             return;
         }
+
         // Ищем подходящую версию (должны поместится все данные + 4 бита типа + минимум
         // 8 бит поля количества символов
         for (var count = 0; count < 40; count++) {
@@ -68,20 +91,23 @@ function QR() {         // Прототип класса штрихкода
         }
         // Сохраняем выбранную версию
         this.version = count;
+
         // Дописываем префикс
-        this.data = this.getTypePrefix().concat(this.getSymbolsPrefix()).concat(this.data);
-        // Ровняем по байтам
+        this.data = this.getTypePrefix().concat(this.getSymbolsPrefix().concat(this.data));
+        // Равняем по байтам
         while ((this.data.length % 8) !== 0) {
             this.pushData("0", 1);
         }
+        // Заполняем до объёма версии
+        count = 0;
+        while (this.data.length <= totalBits[this.version][this.levelCorrection]) {
+            this.pushData(noiseByte[(count++)%2].toString(2), 8)
+        }
+        // Делим на блоки
+        this.splitDataToBlocks();
+
+        создание байтов коррекции
     };
-    this.clear = function () {
-        this.type = undefined;
-        this.levelCorrection = undefined;
-        this.data = undefined;
-        this.version = undefined;
-        this.svg = undefined;
-    }
 }
 // Конец конструктора ///////////////////////////////////////////////
 
@@ -137,8 +163,8 @@ function GetNewQRCode() {
                     error('QRGenerator.js', 'GetNewQRCode()', 'Что-то с циклом намудрил. QR.type = digit');
                     return;
             }
-            // Осуществляем подбор версии QR
-            newQR.getVersion();
+            // Осуществляем финальную подготовку данных
+            newQR.finishPrepare();
 
 
             break;
@@ -155,7 +181,12 @@ function GetNewQRCode() {
 
 
 function SaveAsFile() {
-    alert('utf-8: 11100000 10110011 10001100 to Unicode: ' + utf8ToUnicode(parseInt('111000001011001110001100',2)).toString(2));
+    console.log('Start test.');
+    var i=0;
+    while (i<10) {
+        console.log((i++)%2);
+    }
+    console.log('End test.');
 }
 
 // Секция обработки переключателей //////////////////////////////////
